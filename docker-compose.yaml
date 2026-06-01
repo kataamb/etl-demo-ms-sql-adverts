@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  database:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: adverts_db_container_microsoft_sql
+    env_file:
+      - .env
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${SA_PASSWORD}  
+      - MSSQL_PID=Developer
+    ports:
+      - "${SA_PORT}:1433"
+    volumes:
+      - ./data_volumes:/var/opt/mssql/data
+      - ./csv_data:/data_tables_uuid
+    restart: unless-stopped
+    networks:
+      - my-network
+    user: root
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P ${SA_PASSWORD} -C -Q 'SELECT 1' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      
+networks:
+  my-network:
+    driver: bridge
